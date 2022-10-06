@@ -1,12 +1,14 @@
 import * as express from 'express';
 import BaseController from './controllers/base';
 import MaintenanceController from './controllers/maintenance';
+import UserController from './controllers/user';
 
 export default class App {
     public app: express.Application;
     private port: any;
     private controllers: any[] = [
         new MaintenanceController(),
+        new UserController(),
         new BaseController(),
     ];
 
