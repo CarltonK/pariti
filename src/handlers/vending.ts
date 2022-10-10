@@ -1,28 +1,53 @@
-interface Product {
-    name: string,
-    price: number,
-    slot: number,
-    count: number,
+import { Coin, Dime, Dollar, Half, Quarter } from './coin';
+import GetProduct, { Product, StartPoint } from './product';
+
+export enum VendingMachineSize {
+    small = 6,
+    medium = 9,
+    large = 12,
 }
 
-export default class VendingHandler {
-    private chocolate: Product = { name: 'Chocolate', price: 20, slot: 1, count: 10 };
-    private soda: Product = { name: 'Coca Cola', price: 10, slot: 2, count: 8 };
-    private cake: Product = { name: 'Vanilla Cake', price: 30, slot: 3, count: 6 };
+class Cell {
+    constructor(public product: Product) { }
+    // Set default stock
+    stock = 2;
+    isSold = false;
+}
 
-    private currentChange: number = 100;
+export default class VendingMachineHandler {
+    amountPaid = 0;
+    cells: any = [];
+    acceptedCoins: Coin[] = [new Dime(), new Quarter(), new Half(), new Dollar()];
+    selectedSlot = new Cell(new StartPoint);
+    canPay = () => this.amountPaid - this.selectedSlot.product.price >= 0;
 
-    private calculateChange = (product: Product, amount: number) => {
-        if (amount > product.price) {
-            const change = amount - product.price;
-            if (this.currentChange >= change) return change;
-            else return false;
+    set size(givenSize: VendingMachineSize) {
+        this.cells = [];
+
+        for (let index = 0; index < givenSize; index++) {
+            let product: any = GetProduct();
+            this.cells.push(new Cell(product))
         }
-        else if (amount == product.price) return null;
-        else return false;
     }
 
-    public purchase = (product: Product, amount: number) => {
+    selectItem = (cell: Cell) => {
+        cell.isSold = false;
+        this.selectedSlot = cell;
+    }
 
+    canAcceptCoin = (coin: Coin) => {
+        let totalCoins = this.amountPaid;
+        this.amountPaid = totalCoins + coin.value;
+    }
+
+    payForItem = (): any => {
+        if (this.selectedSlot.stock < 1) {
+            return 'Out of product'; 
+        }
+        let currentPaid = this.amountPaid;
+        this.amountPaid  = Math.round(((currentPaid - this.selectedSlot.product.price)*100))/100;
+        let currentStock = this.selectedSlot.stock;
+        this.selectedSlot.stock = currentStock - 1;
+        this.selectedSlot.isSold = true;
     }
 }
